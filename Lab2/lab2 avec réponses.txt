@@ -68,13 +68,15 @@ _______________________________________________
 cat > ~/trident-installer/setup/backend.json << EOF
 {
     "version": 1,
-    "storageDriverName": "ontap-nas",
-    "storagePrefix": "oc_140",
-    "managementLIF": "10.65.176.114",
-    "svm": "VSYWE1",
-    "username": "vsadmin",
-    "password": "netapp123",
-    "aggregate": "data1"
+    "storageDriverName": "solidfire-san",
+    "Endpoint": "https://admin:NetApp1!@192.168.0.101/json-rpc/7.0",
+    "SVIP": "192.168.0.130:3260",
+    "TenantName": "trident",
+    "InitiatorIFace": "default",
+    "AccessGroups": [1, 2, 3, 4],
+    "Types": [{"Type": "Bronze", "Qos": {"minIOPS": 1000, "maxIOPS": 2000, "burstIOPS": 4000}},
+              {"Type": "Silver", "Qos": {"minIOPS": 4000, "maxIOPS": 6000, "burstIOPS": 8000}},
+              {"Type": "Gold", "Qos": {"minIOPS": 6000, "maxIOPS": 8000, "burstIOPS": 10000}}]
 }
 EOF
 
