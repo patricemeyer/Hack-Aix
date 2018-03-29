@@ -1,0 +1,101 @@
+#####################
+### LAB #2
+#####################
+
+________________________
+1. Connection sur CentOS
+
+_________________________________
+2. Paramétrage de l'environnement
+
+setenforce permissive
+systemctl stop firewalld  && systemctl disable firewalld
+iptables -L INPUT --line 
+iptables -D INPUT 7
+
+____________________________
+3. Installation Docker 17.12
+
+Check supported version of docker: https://netapp-trident.readthedocs.io/en/stable-v18.01/support/requirements.html#requirements
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+yum list docker-ce --showduplicates | sort -r
+yum install -y docker-ce-17.12.1.ce
+echo "INSECURE_REGISTRY='--insecure-registry 172.30.0.0/16'" >> /etc/sysconfig/docker  
+systemctl start docker 
+
+____________________________________________________________________
+4. Finalisation de configuration du cluster Solidfire via powershell
+
+docker run -it --rm netapp/solidfire-powershell:latest 
+	powershell
+	Connect-SFCluster 192.168.0.101 -Username admin -Password Netapp1! 
+	Get-SFPendingNode | Add-SFNode 
+	Get-SFDrive | Where-Object {$_.status -eq "available"} | Add-SFDrive 
+	Disconnect-SFCluster 192.168.0.101
+	exit
+	exit
+	
+_______________________________
+5. Installation OpenShift 3.7.1
+
+cd
+wget https://github.com/openshift/origin/releases/download/v3.7.1/openshift-origin-server-v3.7.1-ab0f056-linux-64bit.tar.gz
+tar xzf openshift*v3.7.1*.tar.gz 
+mv openshift-origin-server-v3.7.1-ab0f056-linux-64bit openshift-v3.7.1-install
+mv openshift-v3.7.1-install/kube* /usr/local/bin/
+mv openshift-v3.7.1-install/o* /usr/local/bin/    
+mkdir ~/oc.config 
+mkdir ~/openshift-startup
+
+_______________________________
+6. Démarrage de OpenShift 3.7.1
+
+oc cluster up --public-hostname="10.65.176.140" --host-data-dir=/root/oc.config --use-existing-config
+oc login -u system:admin
+
+______________________________________________
+7. Installation "Trident for Kubernetes" 18.01
+
+https://netapp-trident.readthedocs.io/en/stable-v18.01/
+
+wget https://github.com/NetApp/trident/releases/download/v18.01.0/trident-installer-18.01.0.tar.gz
+tar -xf trident-installer-18.01.0.tar.gz
+cd trident-installer
+
+_______________________________________________
+8. Configuration "Trident for Kubernetes" 18.01
+
+cat > ~/trident-installer/setup/backend.json << EOF
+{
+    "version": 1,
+    "storageDriverName": "ontap-nas",
+    "storagePrefix": "oc_140",
+    "managementLIF": "10.65.176.114",
+    "svm": "VSYWE1",
+    "username": "vsadmin",
+    "password": "netapp123",
+    "aggregate": "data1"
+}
+EOF
+
+__________________________________________________
+9. Configuration des Backends utilisés par Trident
+
+______________________________________
+10. Configuration d'une "Storage Class"
+
+____________________________________________
+11. Test de création d'un PVC de test de 1Go
+
+cf file test1G.yaml
+
+____________________________________________
+12. Test de création d'un POD de test de 1Go
+
+cf file pod_test.yaml
+
+_______________________________
+13. Création d'un pod Wordpress
+
+cf répertoire Wordpress
+
