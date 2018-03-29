@@ -1,0 +1,26 @@
+{
+  "admin_password": "Netapp1!",
+  "cluster_mgmt_ip": "192.168.0.103",
+  "dns_info": {
+    "dns_ips": [
+      "192.168.0.253"
+    ],
+    "domains": [
+      "demo.netapp.com"
+    ]
+  },
+  "gateway": "192.168.0.1",
+  "inhibit_rollback": true,
+  "name": "cluster3",
+  "netmask": "255.255.255.0",
+  "nodes": [
+    {
+      "host": "192.168.0.51",
+      "node_mgmt_ip": "192.168.0.113"
+    }
+  ],
+  "ntp_servers": [
+    "192.168.0.1"
+  ],
+  "ontap_image_version": "9.2"
+}

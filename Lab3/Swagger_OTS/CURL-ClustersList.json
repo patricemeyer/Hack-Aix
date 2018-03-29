@@ -1,0 +1,17 @@
+{
+  "clusters": [
+    {
+      "cluster_mgmt_ip": "string",
+      "last_refresh": "2018-02-22T09:24:17.190Z",
+      "name": "string",
+      "num_nodes": 0,
+      "ontap_image_version": "string",
+      "state": "creating"
+    }
+  ],
+  "number_of_clusters": 0,
+  "number_of_clusters_in_progress": 0,
+  "number_of_failed_clusters": 0,
+  "number_of_offline_clusters": 0,
+  "number_of_online_clusters": 0
+}

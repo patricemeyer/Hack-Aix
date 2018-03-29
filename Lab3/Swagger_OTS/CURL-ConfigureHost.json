@@ -1,0 +1,18 @@
+{
+  "data_network": {
+    "name": "ONTAP-external",
+    "vlan_id": 0
+  },
+  "eval": true,
+  "is_flash_optimization_enabled": false,
+  "location": "LOD",
+  "mgmt_network": {
+    "name": "ONTAP-external",
+    "vlan_id": 0
+  },
+  "storage_pool": [
+    {
+      "name": "esx1data"
+    }
+  ]
+}
