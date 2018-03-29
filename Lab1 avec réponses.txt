@@ -1,0 +1,107 @@
+#####################
+### LAB #1 - REPONSES
+#####################
+
+________________________
+1. Connection sur CentOS
+
+_________________________________
+2. Paramétrage de l'environnement
+
+setenforce permissive 
+iptables -L INPUT --line 
+iptables -D INPUT 7
+
+____________________________
+3. Installation Docker 17.12
+
+Check supported version of docker: https://netapp-trident.readthedocs.io/en/stable-v18.01/support/requirements.html#requirements
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+yum list docker-ce --showduplicates | sort -r
+yum install docker-ce-17.12.1.ce
+systemctl start docker 
+
+____________________________________________________________________
+4. Finalisation de configuration du cluster Solidfire via powershell
+
+docker run -it --rm netapp/solidfire-powershell:latest 
+	powershell
+	Connect-SFCluster 192.168.0.101 -Username admin -Password Netapp1! 
+	Get-SFPendingNode | Add-SFNode 
+	Get-SFDrive | Where-Object {$_.status -eq "available"} | Add-SFDrive 
+	Disconnect-SFCluster 192.168.0.101
+	exit
+	exit
+	
+__________________________________________
+5. Installation "Trident for Docker" 18.01
+
+https://netapp-trident.readthedocs.io/en/stable-v18.01/
+docker plugin install --alias netapp --grant-all-permissions --disable netapp/trident-plugin:latest
+
+___________________________________________
+6. Configuration "Trident for Docker" 18.01
+
+mkdir /etc/netappdvp
+cat << EOF > /etc/netappdvp/config.json
+{
+    "version": 1,
+    "storageDriverName": "solidfire-san",
+    "debug": false,
+    "Endpoint": "https://admin:XXXX@192.168.0.XXX/json-rpc/7.0",
+    "SVIP": "192.168.0.XXX:3260",
+    "TenantName": "my_tenant",
+    "DefaultVolSz": 1,
+    "InitiatorIFace": "default",
+    "Types": [
+        {
+            "Type": "Bronze",
+            "Qos": {
+                "minIOPS": 1000,
+                "maxIOPS": 2000,
+                "burstIOPS": 4000
+            }
+        },
+        {
+            "Type": "Silver",
+            "Qos": {
+                "minIOPS": 4000,
+                "maxIOPS": 6000,
+                "burstIOPS": 8000
+            }
+        },
+        {
+            "Type": "Gold",
+            "Qos": {
+                "minIOPS": 6000,
+                "maxIOPS": 8000,
+                "burstIOPS": 10000
+            }
+        }
+    ]
+}
+EOF
+
+docker plugin enable netapp
+docker plugin list
+
+____________________________________________________________________
+7. Création d'un volume persistent avec une politique de QoS définie
+
+docker volume create --driver netapp --name vol1 -o size=5 -o type=gold 
+docker volume ls
+
+
+__________________________________________________________________
+8. Demarrage d'un container ALPINE & utilisation d'un shell simple
+
+docker run -it --rm -v vol1:/vol1 alpine ash 
+	df
+
+_____________________________________________________________________________________
+9. Génération d'IO au sein du container Alpine et visionnage sur le cluster Solidfire
+
+	dd if=/dev/zero of=/vol1/myfile bs=1048576 count=5000 
+
+
+
