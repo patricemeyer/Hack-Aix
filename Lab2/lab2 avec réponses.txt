@@ -51,8 +51,6 @@ tar xzf openshift*v3.7.1*.tar.gz 
 mv openshift-origin-server-v3.7.1-ab0f056-linux-64bit openshift-v3.7.1-install
 mv openshift-v3.7.1-install/kube* /usr/local/bin/
 mv openshift-v3.7.1-install/o* /usr/local/bin/    
-mkdir ~/oc.config 
-mkdir ~/openshift-startup
 
 _______________________________
 6. Démarrage de OpenShift 3.7.1
