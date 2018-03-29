@@ -1,5 +1,5 @@
 #####################
-### LAB #2
+### LAB #2 REPONSES
 #####################
 
 ________________________
@@ -50,8 +50,7 @@ mkdir ~/openshift-startup
 _______________________________
 6. Démarrage de OpenShift 3.7.1
 
-oc cluster up --public-hostname="10.65.176.140" --host-data-dir=/root/oc.config --use-existing-config
-oc login -u system:admin
+oc cluster up --public-hostname="192.168.0.61" --host-data-dir=/root/oc.config --use-existing-config
 
 ______________________________________________
 7. Installation "Trident for Kubernetes" 18.01
@@ -80,21 +79,71 @@ cat > ~/trident-installer/setup/backend.json << EOF
 }
 EOF
 
+oc login -u system:admin
+
+
 __________________________________________________
 9. Configuration des Backends utilisés par Trident
 
+on peut utiliser le même backed que sur l'étape 8 :)
+
+tridentctl -n trident create backend -f ~/trident-installer/setup/backend.json
+tridentctl -n trident get backend
+
 ______________________________________
-10. Configuration d'une "Storage Class"
+10. Configuration de 2 "Storage Class" (IOPS = 500 & IOPS= 1500)
+
+cat > ~/trident-installer/sc_small.yaml << EOF
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-small
+provisioner: netapp.io/trident
+parameters:
+  backendType: "solidfire-san"
+  IOPS: "500"
+fsType: "ext4"
+EOF
+
+cat > ~/trident-installer/sc_medium.yaml << EOF
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-medium
+provisioner: netapp.io/trident
+parameters:
+  backendType: "solidfire-san"
+  IOPS: "1500"
+fsType: "ext4"
+EOF
+
+oc create -f ~/trident-installer/sc_small.yaml
+oc create -f ~/trident-installer/sc_medium.yaml
+oc get sc
 
 ____________________________________________
 11. Test de création d'un PVC de test de 1Go
 
 cf file test1G.yaml
 
+oc login -u developer
+oc create -f ~/test1G.yaml
+
+oc login -u system:admin
+oc describe pv myproject
 ____________________________________________
 12. Test de création d'un POD de test de 1Go
 
 cf file pod_test.yaml
+
+oc login -u developer
+oc create -f ~/pod_test.yaml 
+
+y a t il un container Alpine?
+docker ps | grep -e CONTAINER -e alpine
+
+verification du montage à l'intérieur du container
+oc exec -it pod-test-small -- mount
 
 _______________________________
 13. Création d'un pod Wordpress
