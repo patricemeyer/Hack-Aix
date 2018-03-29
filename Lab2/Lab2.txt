@@ -9,6 +9,7 @@ _________________________________
 2. Paramétrage de l'environnement
 
 setenforce permissive 
+systemctl stop firewalld  && systemctl disable firewalld
 iptables -L INPUT --line 
 iptables -D INPUT 7
 
@@ -16,9 +17,13 @@ ____________________________
 3. Installation Docker 17.12
 
 Check supported version of docker: https://netapp-trident.readthedocs.io/en/stable-v18.01/support/requirements.html#requirements
+
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 yum list docker-ce --showduplicates | sort -r
-yum install docker-ce-17.12.1.ce
+yum install -y docker-ce-17.12.1.ce
+
+echo "INSECURE_REGISTRY='--insecure-registry 172.30.0.0/16'" >> /etc/sysconfig/docker  
+
 systemctl start docker 
 
 _______________________________
