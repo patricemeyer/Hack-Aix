@@ -13,6 +13,9 @@ systemctl stop firewalld  && systemctl disable firewalld
 iptables -L INPUT --line 
 iptables -D INPUT 7
 
+cd
+git clone https://github.com/YvosOnTheHub/Hack-Aix.git
+
 ____________________________
 3. Installation Docker 17.12
 
@@ -64,23 +67,9 @@ cd trident-installer
 _______________________________________________
 8. Configuration "Trident for Kubernetes" 18.01
 
-cat > ~/trident-installer/setup/backend.json << EOF
-{
-    "version": 1,
-    "storageDriverName": "solidfire-san",
-    "Endpoint": "https://admin:NetApp1!@192.168.0.101/json-rpc/7.0",
-    "SVIP": "192.168.0.130:3260",
-    "TenantName": "trident",
-    "InitiatorIFace": "default",
-    "AccessGroups": [1, 2, 3, 4],
-    "Types": [{"Type": "Bronze", "Qos": {"minIOPS": 1000, "maxIOPS": 2000, "burstIOPS": 4000}},
-              {"Type": "Silver", "Qos": {"minIOPS": 4000, "maxIOPS": 6000, "burstIOPS": 8000}},
-              {"Type": "Gold", "Qos": {"minIOPS": 6000, "maxIOPS": 8000, "burstIOPS": 10000}}]
-}
-EOF
-
+cp ~/
 oc login -u system:admin
-
+./install_trident.sh -n trident
 
 __________________________________________________
 9. Configuration des Backends utilisés par Trident
@@ -92,30 +81,6 @@ tridentctl -n trident get backend
 
 ______________________________________
 10. Configuration de 2 "Storage Class" (IOPS = 500 & IOPS= 1500)
-
-cat > ~/trident-installer/sc_small.yaml << EOF
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: solidfire-small
-provisioner: netapp.io/trident
-parameters:
-  backendType: "solidfire-san"
-  IOPS: "500"
-fsType: "ext4"
-EOF
-
-cat > ~/trident-installer/sc_medium.yaml << EOF
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: solidfire-medium
-provisioner: netapp.io/trident
-parameters:
-  backendType: "solidfire-san"
-  IOPS: "1500"
-fsType: "ext4"
-EOF
 
 oc create -f ~/trident-installer/sc_small.yaml
 oc create -f ~/trident-installer/sc_medium.yaml
@@ -150,3 +115,9 @@ _______________________________
 
 cf répertoire Wordpress
 
+oc create -f ~/wordpress/1-pvc-wordpress.yaml
+oc create -f ~/wordpress/2-pvc-mysql.yaml
+oc create -f ~/wordpress/3-svc-mysql.yaml
+oc create -f ~/wordpress/4-svc-lb-wp.yaml
+oc create -f ~/wordpress/5-pod-mysql.yaml
+oc create -f ~/wordpress/6-pod-wordpress.yaml
