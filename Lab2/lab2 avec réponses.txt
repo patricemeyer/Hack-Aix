@@ -10,8 +10,6 @@ _________________________________
 
 setenforce permissive
 systemctl stop firewalld  && systemctl disable firewalld
-iptables -L INPUT --line 
-iptables -D INPUT 7
 
 cd
 git clone https://github.com/YvosOnTheHub/Hack-Aix.git
@@ -23,8 +21,14 @@ Check supported version of docker: https://netapp-trident.readthedocs.io/en/stab
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 yum list docker-ce --showduplicates | sort -r
 yum install -y docker-ce-17.12.1.ce
-echo "INSECURE_REGISTRY='--insecure-registry 172.30.0.0/16'" >> /etc/sysconfig/docker  
-systemctl start docker 
+
+cat > /etc/docker/daemon.json << EOF
+    {
+        "insecure-registries" : ["172.30.0.0/16"]
+    }
+EOF
+
+systemctl enable docker && systemctl start docker 
 
 ____________________________________________________________________
 4. Finalisation de configuration du cluster Solidfire via powershell
