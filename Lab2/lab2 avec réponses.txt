@@ -65,13 +65,25 @@ https://netapp-trident.readthedocs.io/en/stable-v18.01/
 wget https://github.com/NetApp/trident/releases/download/v18.01.0/trident-installer-18.01.0.tar.gz
 tar -xf trident-installer-18.01.0.tar.gz
 cd trident-installer
+mv tridentctl /usr/local/bin/
+chmod +x /usr/local/bin/tridentctl  
 
 _______________________________________________
 8. Configuration "Trident for Kubernetes" 18.01
 
-cp ~/
+cp ~/Hack-Aix/Lab2/Setup/backend.json ~/trident-installer/setup/
 oc login -u system:admin
+cd ~/trident-installer
 ./install_trident.sh -n trident
+
+kubectl get pods -n trident
+=> attendre qu'un POD nommé "trident-123456789-XXXX" soit présent
+
+// Vérifier la version de Trident
+tridentctl -n trident version
+
+// Trident utilse un espace de stockage (PV) sur le cluster solidfire
+oc get pv | grep -e NAME -e trident
 
 __________________________________________________
 9. Configuration des Backends utilisés par Trident
