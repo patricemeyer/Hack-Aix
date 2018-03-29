@@ -67,12 +67,18 @@ __________________________________________________
 ______________________________________
 10. Configuration d'une "Storage Class"
 
-_______________________________________________
-11. Configuration "Trident for Kubernetes" 18.01
+____________________________________________
+11. Test de création d'un PVC de test de 1Go
 
-___________________________________
-12. Test de créatio d'un PVC de 1Go
+cf file test1G.yaml
 
+____________________________________________
+12. Test de création d'un POD de test de 1Go
 
+cf file pod_test.yaml
 
+_______________________________
+13. Création d'un pod Wordpress
+
+cf répertoire Wordpress
 
