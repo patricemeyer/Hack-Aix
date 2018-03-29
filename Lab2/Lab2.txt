@@ -8,7 +8,7 @@ ________________________
 _________________________________
 2. Paramétrage de l'environnement
 
-setenforce permissive 
+setenforce permissive
 systemctl stop firewalld  && systemctl disable firewalld
 iptables -L INPUT --line 
 iptables -D INPUT 7
@@ -17,21 +17,30 @@ ____________________________
 3. Installation Docker 17.12
 
 Check supported version of docker: https://netapp-trident.readthedocs.io/en/stable-v18.01/support/requirements.html#requirements
-
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 yum list docker-ce --showduplicates | sort -r
 yum install -y docker-ce-17.12.1.ce
-
 echo "INSECURE_REGISTRY='--insecure-registry 172.30.0.0/16'" >> /etc/sysconfig/docker  
-
 systemctl start docker 
 
+____________________________________________________________________
+4. Finalisation de configuration du cluster Solidfire via powershell
+
+docker run -it --rm netapp/solidfire-powershell:latest 
+	powershell
+	Connect-SFCluster 192.168.0.101 -Username admin -Password Netapp1! 
+	Get-SFPendingNode | Add-SFNode 
+	Get-SFDrive | Where-Object {$_.status -eq "available"} | Add-SFDrive 
+	Disconnect-SFCluster 192.168.0.101
+	exit
+	exit
+	
 _______________________________
-4. Installation OpenShift 3.7.1
+5. Installation OpenShift 3.7.1
 
 cd
 wget https://github.com/openshift/origin/releases/download/v3.7.1/openshift-origin-server-v3.7.1-ab0f056-linux-64bit.tar.gz
-tar xzf openshift*v3.7.1.tar.gz 
+tar xzf openshift*v3.7.1*.tar.gz 
 mv openshift-origin-server-v3.7.1-ab0f056-linux-64bit openshift-v3.7.1-install
 mv openshift-v3.7.1-install/kube* /usr/local/bin/
 mv openshift-v3.7.1-install/o* /usr/local/bin/    
@@ -39,30 +48,30 @@ mkdir ~/oc.config 
 mkdir ~/openshift-startup
 
 _______________________________
-5. Démarrage de OpenShift 3.7.1
+6. Démarrage de OpenShift 3.7.1
 
 oc cluster up --public-hostname="10.65.176.140" --host-data-dir=/root/oc.config --use-existing-config
 oc login -u system:admin
 
 ______________________________________________
-5. Installation "Trident for Kubernetes" 18.01
+7. Installation "Trident for Kubernetes" 18.01
 
 https://netapp-trident.readthedocs.io/en/stable-v18.01/
 
 _______________________________________________
-6. Configuration "Trident for Kubernetes" 18.01
+8. Configuration "Trident for Kubernetes" 18.01
 
 __________________________________________________
-7. Configuration des Backends utilisés par Trident
+9. Configuration des Backends utilisés par Trident
 
 ______________________________________
-8. Configuration d'une "Storage Class"
+10. Configuration d'une "Storage Class"
 
 _______________________________________________
-9. Configuration "Trident for Kubernetes" 18.01
+11. Configuration "Trident for Kubernetes" 18.01
 
 ___________________________________
-10. Test de créatio d'un PVC de 1Go
+12. Test de créatio d'un PVC de 1Go
 
 
 
