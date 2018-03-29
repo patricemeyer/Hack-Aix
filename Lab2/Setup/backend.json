@@ -1,7 +1,7 @@
 {
     "version": 1,
     "storageDriverName": "solidfire-san",
-    "Endpoint": "https://admin:NetApp1!@192.168.0.101/json-rpc/7.0",
+    "Endpoint": "https://admin:Netapp1!@192.168.0.101/json-rpc/7.0",
     "SVIP": "192.168.0.130:3260",
     "TenantName": "trident",
     "InitiatorIFace": "default",
