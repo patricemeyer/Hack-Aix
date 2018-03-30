@@ -1,0 +1,123 @@
+#######################
+### INSTALL ANSIBLE
+#######################
+
+sudo yum -y install epel-release
+sudo yum -y install ansible
+ansible --version		
+
+#######################
+### CONFIG K8S
+#######################
+
+http://git.systemprep.net/schmots/ansible_playbooks
+
+
+/etc/ansible/hosts
+
+192.168.0.61
+
+[k8s]
+192.168.0.61
+
+[all]
+kubemaster ansible_ssh_host=192.168.0.61
+
+
+
+
+Kube.yaml
+ansible-playbook kube.yaml --ask-pass --ask-become-pass
+
+cat > ~/kube-install.yaml << EOF
+---
+- hosts: k8s 
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Add repository for kubernetes
+      yum_repository:
+        name: Kubernetes
+        description: 'Kubernetes repo'
+        baseurl: http://yum.kubernetes.io/repos/kubernetes-el7-x86_64
+        gpgcheck: no
+        repo_gpgcheck: no
+
+    - name: Disable SElinux
+      selinux:
+        state: disabled
+
+    - name: Remove swapfile from /etc/fstab
+      mount:
+        name: swap
+        fstype: swap
+        state: absent
+    - name: Disable swap
+      command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+
+    - name: install required files
+      yum:
+        name: "{{ item.name }}"
+        state: latest
+      with_items:
+        - { name: 'wget' }
+        - { name: 'nfs-utils' }
+        - { name: 'net-tools' }
+        - { name: 'docker' }
+        - { name: 'kubelet' }
+        - { name: 'kubeadm' }
+        - { name: 'iptables-services' }
+        - { name: 'iscsi-initiator-utils' }
+
+    - name: Update selinux configs
+      replace:
+        path: /etc/sysconfig/selinux
+        regexp: '^SELINUX=.*'
+        replace: 'SELINUX=disabled'
+
+    - name: Update NFS
+      replace:
+        path: /etc/nfsmount.conf
+        regexp: '# Defaultvers=4'
+        replace: 'Defaultvers=3' 
+
+    - name: Enabling Services
+      service:
+        name: "{{ item.name }}"
+        enabled: "{{ item.enable }}"
+      with_items:
+        - { name: 'kubelet', enable: 'yes' }
+        - { name: 'docker', enable: 'yes' }
+        - { name: 'firewalld', enable: 'no' }
+
+    - name: Starting Docker, Stopping firewalld
+      service:
+        name: "{{ item.name }}"
+        state: "{{ item.state }}"
+      with_items:
+        - { name: 'docker', state: 'started' }
+        - { name: 'firewalld', state: 'stopped' }
+
+
+- hosts: kubemaster
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: Generate token
+    command: /usr/bin/kubeadm token generate
+    register: token
+  - name: Setup Cluster
+    command: /usr/bin/kubeadm init --token {{ token.stdout }} --pod-network-cidr=10.244.0.0/16
+  - name: Set root access
+    command: "{{ item }}"
+    with_items:
+      - "mkdir /root/.kube"
+      - "cp -i /etc/kubernetes/admin.conf /root/.kube/config"
+      - "chown root: /root/.kube/config"
+  - name: Setting up pod networking
+    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  - name: Saving token
+    set_fact:
+      token: "{{token.stdout}}"
+EOF
