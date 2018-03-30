@@ -23,8 +23,16 @@ NTP server IP(s)					192.168.0.1
 Management network port group		ONTAP-external
 Data network port group				ONTAP-external
 
+ONTAP Deploy FQDN					ontapselect.demo.netapp.com
+ONTAP Deploy IP						192.168.0.109
+
+3 étapes:
+- ajout de l'ESX dans la configuration Deploy
+- configuration de cet ESX
+- creation d'un cluster
+
 ____________________
-1.A Création via API (login sur Deploy)
+1.A Création via CLI (login sur Deploy)
 
 host add --host-id 192.168.0.51 --username "DEMO\administrator"  --password "Netapp1!" --vcenter vc1.demo.netapp.com
 host show-all (=> il doit être en 'authenticated')
@@ -37,7 +45,7 @@ host show-all (=> Cluster Created = True)
 cluster show-all
 
 _____________________
-1.B Création d'un CLI (login sur RHEL1)
+1.B Création d'un API (login sur RHEL1) ==> Patience
 
 /// HOST Registration
 curl -ku admin:Netapp1! -X PUT --header 'Content-Type: application/json' --header 'Accept: application/json' -d @CURL-RegisterHost.json 'https://ontapselect.demo.netapp.com/api/v2/hosts/192.168.0.51'
@@ -59,60 +67,66 @@ curl -ku admin:Netapp1! -X GET --header 'Accept: application/json' -d @CURL-Clus
 ______________________
 1. Connection sur RHEL1
 
-_________________________________
-2. Paramétrage de l'environnement
+__________________________
+2. Configuration d'une SVM
+__________________________________________________________
+2.A Création d'une SVM sur le nouveau cluster ONTAP Select (la création prend 30 minutes)
 
-setenforce permissive 
-iptables -L INPUT --line 
-iptables -D INPUT 7
+IP de dispo: 192.168.0.140
+Protocole à activer: NFS
+Gérer l'utilisateur vsadmin
+______________________________________________
+2.B Utilisation de la SVM svm1 sur le cluster1
 
-____________________________
-3. Installation Docker 17.12
+- Creation d'un mot de passe pour l'utlisateur vsadmin => Netapp1!
+- "Unlock" de l'utilisateur vsadmin
+- Lif à utiliser: 192.168.0.131
 
-yum localinstall  http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.42-1.gitad8f0f7.el7.noarch.rpm
-yum localinstall -y http://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/p/pigz-2.3.4-1.el7.x86_64.rpm
-sudo yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum install docker-ce
-
-Check supported version of docker: https://netapp-trident.readthedocs.io/en/stable-v18.01/support/requirements.html#requirements
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum list docker-ce --showduplicates | sort -r
-yum install docker-ce-17.12.1.ce
-systemctl start docker 
-
-____________________________________________________________________
-4. Finalisation de configuration du cluster Solidfire via powershell
-
-docker run -it --rm netapp/solidfire-powershell:latest 
-	powershell
-	Connect-SFCluster 192.168.0.101 -Username admin -Password Netapp1! 
-	Get-SFPendingNode | Add-SFNode 
-	Get-SFDrive | Where-Object {$_.status -eq "available"} | Add-SFDrive 
-	Disconnect-SFCluster 192.168.0.101
-	exit
-	exit
-	
 __________________________________________
-5. Installation "Trident for Docker" 18.01
+3. Installation "Trident for Docker" 18.01
 
 https://netapp-trident.readthedocs.io/en/stable-v18.01/
+docker plugin install --alias netapp --grant-all-permissions --disable netapp/trident-plugin:latest
 
 ___________________________________________
-6. Configuration "Trident for Docker" 18.01
+4. Configuration "Trident for Docker" 18.01
+
+le fichier config.json pour utiliser la svm1 existe déjà sur RHEL1
+il est adaptable pour utiliser le cluster2 si besoin
+
+_______________________________________________________
+5. Création d'un volume persistent & gestion du contenu
+
+docker volume create -d ontapnas --name demo_www_data -o size=1g
+docker volume ls
+mount 192.168.0.131:/netappdvp_demo_www_data /mnt/demo_www_data
+cp ~/demo_www_data/*  /mnt/demo_www_data/
+
+________________________________________________________________
+6. Création d'un clone de volume persistent & gestion du contenu
+
+docker volume create -d ontapnas --name demo_www_data_clone -o from=demo_www_data
+docker volume ls
+ssh -l vsadmin 192.168.0.131 vol clone show
+mkdir /mnt/demo_www_data_clone
+mount 10.65.180.126:/ywe_demo_www_data_clone /mnt/demo_www_data_clone
+
+__________________________________
+7. Création de 3 containers Apache
+
+Container#1 pointe sur volume persistent#1
+Container#2 pointe sur volume persistent#1
+Container#3 pointe sur volume persistent#2 (clone du volume#1)
+
+docker run -d --name demo_php1 -v demo_www_data:/var/www/html -p 8000:80 php:7.0-apache
+docker run -d --name demo_php2 -v demo_www_data:/var/www/html -p 8001:80 php:7.0-apache
+docker run -d --name demo_php3 -v demo_www_data_clone:/var/www/html -p 8002:80 php:5.5-apache
+
+_____________________________________________________________________________
+8. Connexion sur le navigateur vers les 3 containers et observer le résultat
 
 ____________________________________________________________________
-7. Création d'un volume persistent avec une politique de QoS définie
-
-__________________________________________________________________
-8. Demarrage d'un container ALPINE & utilisation d'un shell simple
-
-exemple avec un volume nommé "vol1"
-docker run -it --rm -v vol1:/vol1 alpine ash 
-
-_____________________________________________________________________________________
-9. Génération d'IO au sein du container Alpine et visionnage sur le cluster Solidfire
-
-exemple de commande pour générér des IO: dd
+9. Modification du contenu (parent & clone) & observation à nouveau
 
 
 
