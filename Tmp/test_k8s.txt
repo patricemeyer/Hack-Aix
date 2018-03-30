@@ -1,12 +1,13 @@
-#######################
-### CONFIG OS
-#######################
-setenforce permissive
+
+____________
+1. Config OS
+
+setenforce 0
 systemctl stop firewalld  && systemctl disable firewalld
 
-#######################
-### INSTALL ANSIBLE
-#######################
+__________________
+2. Install Ansible
+
 
 yum -y install epel-release
 yum -y install ansible
@@ -123,6 +124,68 @@ cat > ~/kube-install.yaml << EOF
       token: "{{token.stdout}}"
 EOF
 
-ansible-playbook kube-install.yaml --ask-pass --ask-become-pass
+ansible-playbook kube-install.yaml --connection=local
+
+
+
+////////////////////
+
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+yum list docker-ce --showduplicates | sort -r
+yum install -y docker-ce-17.12.1.ce
+
+systemctl start docker
+cat > /etc/docker/daemon.json << EOF
+    {
+        "insecure-registries" : ["172.30.0.0/16"]
+    }
+EOF
+
+systemctl enable docker && systemctl restart docker
+
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+setenforce 0
+yum install -y kubelet kubeadm kubectl
+systemctl enable kubelet && systemctl start kubelet
+
+
 
 kubectl taint nodes --all node-role.kubernetes.io/master-
+____________________________________________________________________
+4. Finalisation de configuration du cluster Solidfire via powershell
+
+docker run -it --rm netapp/solidfire-powershell:latest 
+	powershell
+	Connect-SFCluster 192.168.0.101 -Username admin -Password Netapp1! 
+	Get-SFPendingNode | Add-SFNode 
+	Get-SFDrive | Where-Object {$_.status -eq "available"} | Add-SFDrive 
+	Disconnect-SFCluster 192.168.0.101
+	exit
+	exit
+	
+______________________________________________
+7. Installation "Trident for Kubernetes" 18.01
+
+https://netapp-trident.readthedocs.io/en/stable-v18.01/
+
+wget https://github.com/NetApp/trident/releases/download/v18.01.0/trident-installer-18.01.0.tar.gz
+tar -xf trident-installer-18.01.0.tar.gz
+cd trident-installer
+mv tridentctl /usr/local/bin/
+chmod +x /usr/local/bin/tridentctl  
+
+_______________________________________________
+8. Configuration "Trident for Kubernetes" 18.01
+
+cp ~/Hack-Aix/Lab2/Setup/backend.json ~/trident-installer/setup/
+cd ~/trident-installer
+./install_trident.sh -n trident
+	
