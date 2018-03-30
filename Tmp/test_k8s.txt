@@ -121,3 +121,5 @@ cat > ~/kube-install.yaml << EOF
     set_fact:
       token: "{{token.stdout}}"
 EOF
+
+kubectl taint nodes --all node-role.kubernetes.io/master-
