@@ -69,6 +69,11 @@ iptables -D INPUT 7
 ____________________________
 3. Installation Docker 17.12
 
+yum localinstall  http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.42-1.gitad8f0f7.el7.noarch.rpm
+yum localinstall -y http://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/p/pigz-2.3.4-1.el7.x86_64.rpm
+sudo yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+yum install docker-ce
+
 Check supported version of docker: https://netapp-trident.readthedocs.io/en/stable-v18.01/support/requirements.html#requirements
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 yum list docker-ce --showduplicates | sort -r
