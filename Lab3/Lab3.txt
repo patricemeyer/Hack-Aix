@@ -23,69 +23,57 @@ NTP server IP(s)					192.168.0.1
 Management network port group		ONTAP-external
 Data network port group				ONTAP-external
 
+ONTAP Deploy FQDN					ontapselect.demo.netapp.com
+ONTAP Deploy IP						192.168.0.109
+
 3 étapes:
 - ajout de l'ESX dans la configuration Deploy
 - configuration de cet ESX
+- creation d'un cluster
 
 
-____________________
-1.A Création via API (login sur Deploy)
-
-_____________________
-1.B Création d'un CLI (login sur RHEL1)
-
-______________________
+_______________________
 1. Connection sur RHEL1
 
-_________________________________
-2. Paramétrage de l'environnement
+__________________________
+2. Configuration d'une SVM
+__________________________________________________________
+2.A Création d'une SVM sur le nouveau cluster ONTAP Select (la création prend 30 minutes)
 
-setenforce permissive 
-iptables -L INPUT --line 
-iptables -D INPUT 7
+IP de dispo: 192.168.0.140
+Protocole à activer: NFS
+Gérer l'utilisateur vsadmin
+______________________________________________
+2.B Utilisation de la SVM svm1 sur le cluster1
 
-____________________________
-3. Installation Docker 17.12
-
-Check supported version of docker: https://netapp-trident.readthedocs.io/en/stable-v18.01/support/requirements.html#requirements
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum list docker-ce --showduplicates | sort -r
-yum install docker-ce-17.12.1.ce
-systemctl start docker 
-
-____________________________________________________________________
-4. Finalisation de configuration du cluster Solidfire via powershell
-
-docker run -it --rm netapp/solidfire-powershell:latest 
-	powershell
-	Connect-SFCluster 192.168.0.101 -Username admin -Password Netapp1! 
-	Get-SFPendingNode | Add-SFNode 
-	Get-SFDrive | Where-Object {$_.status -eq "available"} | Add-SFDrive 
-	Disconnect-SFCluster 192.168.0.101
-	exit
-	exit
-	
 __________________________________________
-5. Installation "Trident for Docker" 18.01
+3. Installation "Trident for Docker" 18.01
 
 https://netapp-trident.readthedocs.io/en/stable-v18.01/
 
 ___________________________________________
-6. Configuration "Trident for Docker" 18.01
+4. Configuration "Trident for Docker" 18.01
+
+_____________________________________________________________
+5. Création d'un volume persistent de 1G & gestion du contenu
+
+Contenu à copier sur volume persistent présent dans le répertoire ~/demo_www_data/*
+
+________________________________________________________________
+6. Création d'un clone de volume persistent & gestion du contenu
+
+__________________________________
+7. Création de 3 containers Apache
+
+Container#1 pointe sur volume persistent#1
+Container#2 pointe sur volume persistent#1
+Container#3 pointe sur volume persistent#2 (clone du volume#1)
+
+Image à utiliser: php:7.0-apache
+Volume interne à lier au volume persistent: /var/www/html
+
+_____________________________________________________________________________
+8. Connexion sur le navigateur vers les 3 containers et observer le résultat
 
 ____________________________________________________________________
-7. Création d'un volume persistent avec une politique de QoS définie
-
-__________________________________________________________________
-8. Demarrage d'un container ALPINE & utilisation d'un shell simple
-
-exemple avec un volume nommé "vol1"
-docker run -it --rm -v vol1:/vol1 alpine ash 
-
-_____________________________________________________________________________________
-9. Génération d'IO au sein du container Alpine et visionnage sur le cluster Solidfire
-
-exemple de commande pour générér des IO: dd
-
-
-
+9. Modification du contenu (parent & clone) & observation à nouveau
