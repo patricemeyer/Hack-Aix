@@ -67,8 +67,8 @@ curl -ku admin:Netapp1! -X GET --header 'Accept: application/json' -d @CURL-Clus
 ______________________
 1. Connection sur RHEL1
 
-__________________________
-2. Configuration d'une SVM
+____________________________________________
+2. Configuration d'une SVM (au choix A ou B)
 __________________________________________________________
 2.A Création d'une SVM sur le nouveau cluster ONTAP Select (la création prend 30 minutes)
 
