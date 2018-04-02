@@ -1,0 +1,82 @@
+#####################
+### LAB #2
+#####################
+
+________________________
+1. Connection sur RHEL1
+
+_________________________________
+2. Paramétrage de l'environnement
+
+setenforce 0
+systemctl stop firewalld  && systemctl disable firewalld
+
+____________________________
+3. Installation Docker 17.12
+
+mv /etc/docker/daemon.json /etc/docker/daemon.json.bak
+cat > /etc/docker/daemon.json << EOF
+    {
+        "insecure-registries" : ["172.30.0.0/16"]
+    }
+systemctl restart docker 
+
+____________________________________________________________________
+4. Finalisation de configuration du cluster Solidfire via powershell
+
+docker run -it --rm netapp/solidfire-powershell:latest 
+	powershell
+	Connect-SFCluster 192.168.0.101 -Username admin -Password Netapp1! 
+	Get-SFPendingNode | Add-SFNode 
+	Get-SFDrive | Where-Object {$_.status -eq "available"} | Add-SFDrive 
+	Disconnect-SFCluster 192.168.0.101
+	exit
+	exit
+	
+_______________________________
+5. Installation OpenShift 3.7.1
+
+cd
+https://www.dropbox.com/s/0svi17npfol8m7q/openshift-origin-server-v3.7.1-ab0f056-linux-64bit.tar.gz
+tar xzf openshift*v3.7.1*.tar.gz 
+mv openshift-origin-server-v3.7.1-ab0f056-linux-64bit openshift-v3.7.1-install
+mv openshift-v3.7.1-install/kube* /usr/local/bin/
+mv openshift-v3.7.1-install/o* /usr/local/bin/    
+mkdir ~/oc.config 
+mkdir ~/openshift-startup
+
+_______________________________
+6. Démarrage de OpenShift 3.7.1
+
+oc cluster up --public-hostname="10.65.176.140" --host-data-dir=/root/oc.config --use-existing-config
+oc login -u system:admin
+
+______________________________________________
+7. Installation "Trident for Kubernetes" 18.01
+
+https://netapp-trident.readthedocs.io/en/stable-v18.01/
+
+_______________________________________________
+8. Configuration "Trident for Kubernetes" 18.01
+
+__________________________________________________
+9. Configuration des Backends utilisés par Trident
+
+______________________________________
+10. Configuration de 2 "Storage Class" (IOPS = 500 & IOPS= 1500)
+
+____________________________________________
+11. Test de création d'un PVC de test de 1Go
+
+cf file ontap_test_1G.yaml
+
+____________________________________________
+12. Test de création d'un POD de test de 1Go
+
+cf file pod_test.yaml
+
+_______________________________
+13. Création d'un pod Wordpress
+
+cf répertoire Wordpress
+

@@ -1,0 +1,131 @@
+#####################
+### LAB #2 REPONSES
+#####################
+
+________________________
+1. Connection sur RHEL1
+
+_________________________________
+2. Paramétrage de l'environnement
+
+setenforce 0
+systemctl stop firewalld  && systemctl disable firewalld
+
+cd
+git clone https://github.com/YvosOnTheHub/Hack-Aix.git
+
+____________________________
+3. Installation Docker 17.12
+
+mv /etc/docker/daemon.json /etc/docker/daemon.json.bak
+cat > /etc/docker/daemon.json << EOF
+    {
+        "insecure-registries" : ["172.30.0.0/16"]
+    }
+systemctl restart docker 
+
+____________________________________________________________________
+4. Finalisation de configuration du cluster Solidfire via powershell
+
+docker run -it --rm netapp/solidfire-powershell:latest 
+	powershell
+	Connect-SFCluster 192.168.0.101 -Username admin -Password Netapp1! 
+	Get-SFPendingNode | Add-SFNode 
+	Get-SFDrive | Where-Object {$_.status -eq "available"} | Add-SFDrive 
+	Disconnect-SFCluster 192.168.0.101
+	exit
+	exit
+	
+_______________________________
+5. Installation OpenShift 3.7.1
+
+cd
+wget https://www.dropbox.com/s/0svi17npfol8m7q/openshift-origin-server-v3.7.1-ab0f056-linux-64bit.tar.gz
+tar xzf openshift*v3.7.1*.tar.gz 
+mv openshift-origin-server-v3.7.1-ab0f056-linux-64bit openshift-v3.7.1-install
+mv openshift-v3.7.1-install/kube* /usr/local/bin/
+mv openshift-v3.7.1-install/o* /usr/local/bin/    
+
+_______________________________
+6. Démarrage de OpenShift 3.7.1
+
+oc cluster up --public-hostname="192.168.0.61" --host-data-dir=/root/oc.config --use-existing-config
+
+______________________________________________
+7. Installation "Trident for Kubernetes" 18.01
+
+https://netapp-trident.readthedocs.io/en/stable-v18.01/
+
+wget https://www.dropbox.com/s/4vtd0pvsxrxmt1m/trident-installer-18.01.0.tar.gz
+tar -xf trident-installer-18.01.0.tar.gz
+cd trident-installer
+mv tridentctl /usr/local/bin/
+chmod +x /usr/local/bin/tridentctl  
+
+_______________________________________________
+8. Configuration "Trident for Kubernetes" 18.01
+
+cp ~/Hack-Aix/Lab3/Setup/ontap_backend.json ~/trident-installer/setup/backend.json
+oc login -u system:admin
+cd ~/trident-installer
+./install_trident.sh -n trident
+
+kubectl get pods -n trident
+=> attendre qu'un POD nommé "trident-123456789-XXXX" soit présent
+
+// Vérifier la version de Trident
+tridentctl -n trident version
+
+// Trident utilse un espace de stockage (PV) sur le cluster solidfire
+oc get pv | grep -e NAME -e trident
+
+__________________________________________________
+9. Configuration des Backends utilisés par Trident
+
+on peut utiliser le même backed que sur l'étape 8 :)
+
+tridentctl -n trident create backend -f ~/trident-installer/setup/backend.json
+tridentctl -n trident get backend
+
+______________________________________
+10. Configuration de 2 "Storage Class" (IOPS = 500 & IOPS= 1500)
+
+oc create -f ~/Hack-Aix/Lab3/Config/ontap_sc_thin.yaml
+oc create -f ~/Hack-Aix/Lab3/Config/ontap_sc_thick.yaml
+oc get sc
+
+____________________________________________
+11. Test de création d'un PVC de test de 1Go
+
+cf file test_1G.yaml
+
+oc login -u developer
+oc create -f ~/Hack-Aix/Lab3/Test/ontap_test_1G.yaml
+
+oc login -u system:admin
+oc describe pv myproject
+____________________________________________
+12. Test de création d'un POD de test de 1Go
+
+cf file pod_test.yaml
+
+oc login -u developer
+oc create -f ~/Hack-Aix/Lab3/Test/pod_test.yaml 
+
+y a t il un container Alpine?
+docker ps | grep -e CONTAINER -e alpine
+
+verification du montage à l'intérieur du container
+oc exec -it pod-test-small -- mount
+
+_______________________________
+13. Création d'un pod Wordpress
+
+cf répertoire Wordpress
+
+oc create -f ~/wordpress/1-pvc-ontap-wordpress.yaml
+oc create -f ~/wordpress/2-pvc-ontap-mysql.yaml
+oc create -f ~/wordpress/3-svc-mysql.yaml
+oc create -f ~/wordpress/4-svc-lb-wp.yaml
+oc create -f ~/wordpress/5-pod-mysql.yaml
+oc create -f ~/wordpress/6-pod-wordpress.yaml
