@@ -48,6 +48,7 @@ _______________________________
 
 cd
 wget https://github.com/openshift/origin/releases/download/v3.7.1/openshift-origin-server-v3.7.1-ab0f056-linux-64bit.tar.gz
+wget https://github.com/openshift/origin/releases/download/v3.9.0/openshift-origin-server-v3.9.0-191fece-linux-64bit.tar.gz
 tar xzf openshift*v3.7.1*.tar.gz 
 mv openshift-origin-server-v3.7.1-ab0f056-linux-64bit openshift-v3.7.1-install
 mv openshift-v3.7.1-install/kube* /usr/local/bin/
