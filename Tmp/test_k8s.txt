@@ -1,6 +1,6 @@
 
-https://www.dropbox.com/s/0svi17npfol8m7q/openshift-origin-server-v3.7.1-ab0f056-linux-64bit.tar.gz?dl=0
-https://www.dropbox.com/s/4vtd0pvsxrxmt1m/trident-installer-18.01.0.tar.gz?dl=0
+https://www.dropbox.com/s/0svi17npfol8m7q/openshift-origin-server-v3.7.1-ab0f056-linux-64bit.tar.gz
+https://www.dropbox.com/s/4vtd0pvsxrxmt1m/trident-installer-18.01.0.tar.gz
 
 ____________
 1. Config OS
