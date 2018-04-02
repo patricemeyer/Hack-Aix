@@ -1,5 +1,5 @@
 #####################
-### LAB #2 REPONSES
+### LAB #3 REPONSES
 #####################
 
 ________________________
@@ -15,7 +15,7 @@ cd
 git clone https://github.com/YvosOnTheHub/Hack-Aix.git
 
 ____________________________
-3. Installation Docker 17.12
+3. Configuration Docker 17.12
 
 mv /etc/docker/daemon.json /etc/docker/daemon.json.bak
 cat > /etc/docker/daemon.json << EOF
@@ -24,17 +24,14 @@ cat > /etc/docker/daemon.json << EOF
     }
 systemctl restart docker 
 
-____________________________________________________________________
-4. Finalisation de configuration du cluster Solidfire via powershell
+________________________________________________________
+4. Finalisation de configuration du cluster ONTAP (cluster1/SVM1)
 
-docker run -it --rm netapp/solidfire-powershell:latest 
-	powershell
-	Connect-SFCluster 192.168.0.101 -Username admin -Password Netapp1! 
-	Get-SFPendingNode | Add-SFNode 
-	Get-SFDrive | Where-Object {$_.status -eq "available"} | Add-SFDrive 
-	Disconnect-SFCluster 192.168.0.101
-	exit
-	exit
+//créer un mot de passe & "délocker" l'utilisateur vsadmin de la svm1, via GUI ou CLI
+(cluster1 = 192.168.0.101)
+
+ssh -l admin 192.168.0.101 security login password -username vsadmin -vserver svm1
+ssh -l admin 192.168.0.101 security login unlock -username vsadmin -vserver svm1
 	
 _______________________________
 5. Installation OpenShift 3.7.1
