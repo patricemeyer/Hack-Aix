@@ -1,5 +1,5 @@
 
-https://www.dropbox.com/s/bnlgmx6kq82omih/SolidFire%20Element%208.4%20User%20Guide.pdf?dl=0
+https://www.dropbox.com/s/0svi17npfol8m7q/openshift-origin-server-v3.7.1-ab0f056-linux-64bit.tar.gz?dl=0
 
 ____________
 1. Config OS
