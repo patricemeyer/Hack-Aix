@@ -1,5 +1,5 @@
 #####################
-### LAB #2
+### LAB #3
 #####################
 
 ________________________
@@ -21,23 +21,17 @@ cat > /etc/docker/daemon.json << EOF
     }
 systemctl restart docker 
 
-____________________________________________________________________
-4. Finalisation de configuration du cluster Solidfire via powershell
+________________________________________________________
+4. Finalisation de configuration du cluster ONTAP (cluster1/SVM1)
 
-docker run -it --rm netapp/solidfire-powershell:latest 
-	powershell
-	Connect-SFCluster 192.168.0.101 -Username admin -Password Netapp1! 
-	Get-SFPendingNode | Add-SFNode 
-	Get-SFDrive | Where-Object {$_.status -eq "available"} | Add-SFDrive 
-	Disconnect-SFCluster 192.168.0.101
-	exit
-	exit
+créer un mot de passe & "délocker" l'utilisateur vsadmin de la svm1
+(cluster1 = 192.168.0.101)
 	
 _______________________________
 5. Installation OpenShift 3.7.1
 
 cd
-https://www.dropbox.com/s/0svi17npfol8m7q/openshift-origin-server-v3.7.1-ab0f056-linux-64bit.tar.gz
+wget https://www.dropbox.com/s/0svi17npfol8m7q/openshift-origin-server-v3.7.1-ab0f056-linux-64bit.tar.gz
 tar xzf openshift*v3.7.1*.tar.gz 
 mv openshift-origin-server-v3.7.1-ab0f056-linux-64bit openshift-v3.7.1-install
 mv openshift-v3.7.1-install/kube* /usr/local/bin/
