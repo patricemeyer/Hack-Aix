@@ -2,8 +2,8 @@
 ### LAB #3 REPONSES
 #####################
 
-________________________
-1. Connection sur RHEL1
+_______________________________
+1. Connection sur RHEL1 (putty)
 
 _________________________________
 2. Paramétrage de l'environnement
@@ -29,7 +29,7 @@ ________________________________________________________
 4. Finalisation de configuration du cluster ONTAP (cluster1/SVM1)
 
 //créer un mot de passe & "délocker" l'utilisateur vsadmin de la svm1, via GUI ou CLI
-(cluster1 = 192.168.0.101)
+(cluster1 = 192.168.0.101, admin/Netapp1!)
 
 ssh -l admin 192.168.0.101 security login password -username vsadmin -vserver svm1
 ssh -l admin 192.168.0.101 security login unlock -username vsadmin -vserver svm1
