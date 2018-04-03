@@ -3,7 +3,7 @@ kind: Pod
 metadata:
   name: wordpress
   labels:
-    app: wordpress
+    name: wordpress
 spec:
   containers:
     - env:
