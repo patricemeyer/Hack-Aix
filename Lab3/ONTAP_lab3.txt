@@ -43,7 +43,7 @@ mkdir ~/openshift-startup
 _______________________________
 6. Démarrage de OpenShift 3.7.1
 
-oc cluster up --public-hostname="10.65.176.140" --host-data-dir=/root/oc.config --use-existing-config
+oc cluster up --public-hostname="192.168.0.61" --host-data-dir=/root/oc.config --use-existing-config
 oc login -u system:admin
 
 ______________________________________________
